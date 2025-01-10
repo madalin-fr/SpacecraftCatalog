@@ -10,6 +10,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.spacecraftcatalog.ui.screens.AgencyListScreen
+import com.example.spacecraftcatalog.ui.screens.SpacecraftDetailsScreen
+import com.example.spacecraftcatalog.ui.screens.SpacecraftListScreen
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
@@ -34,8 +36,15 @@ fun AppNavigation(navController: NavHostController) {
                 }
             )
         ) {
-            // Placeholder for SpacecraftListScreen
-            // We'll implement this next
+            SpacecraftListScreen(
+                viewModel = hiltViewModel(),
+                onSpacecraftClick = { spacecraftId ->
+                    navController.navigate(Screen.SpacecraftDetails.createRoute(spacecraftId))
+                },
+                onNavigateUp = {
+                    navController.navigateUp()
+                }
+            )
         }
 
         composable(
@@ -46,8 +55,12 @@ fun AppNavigation(navController: NavHostController) {
                 }
             )
         ) {
-            // Placeholder for SpacecraftDetailsScreen
-            // We'll implement this later
+            SpacecraftDetailsScreen(
+                viewModel = hiltViewModel(),
+                onNavigateUp = {
+                    navController.navigateUp()
+                }
+            )
         }
     }
 }
