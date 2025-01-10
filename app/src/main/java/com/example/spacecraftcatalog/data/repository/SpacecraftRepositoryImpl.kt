@@ -32,25 +32,26 @@ class SpacecraftRepositoryImpl @Inject constructor(
         try {
             Log.d("SpacecraftRepository", "Refreshing spacecraft for agencyId: $agencyId")
             val response = api.getSpacecraft(limit = 100, agencyId = agencyId)
-            Log.d("SpacecraftRepository", "API Response: $response")
-            if (response.results.isNotEmpty()) {
-                val spacecraftEntities = response.results.map { spacecraftDto ->
-                    Log.d("SpacecraftRepository", "Mapping SpacecraftDto: $spacecraftDto")
-                    // Map agencyId to null if not present in DTO
-                    val entity = spacecraftDto.toSpacecraftEntity()
-                    Log.d("SpacecraftRepository", "Mapped Entity: $entity")
-                    entity
-                }
-                dao.upsertSpacecraftForAgency(agencyId, spacecraftEntities)
-                Log.d("SpacecraftRepository", "Inserted ${spacecraftEntities.size} spacecraft records into the database.")
-            } else {
-                Log.w("SpacecraftRepository", "No spacecraft data found from API for agencyId: $agencyId")
+
+            val spacecraftEntities = response.results.map { dto ->
+                dto.toSpacecraftEntity(requestedAgencyId = agencyId)
             }
+
+            // Validate before insertion
+            val validEntities = spacecraftEntities.filter { it.agencyId != null }
+            if (validEntities.isEmpty()) {
+                throw IllegalStateException("No valid spacecraft entities created for agency $agencyId")
+            }
+
+            dao.upsertSpacecraftForAgency(agencyId, validEntities)
+            Log.d("SpacecraftRepository", "Successfully updated ${validEntities.size} spacecraft records")
+
         } catch (e: Exception) {
-            Log.e("SpacecraftRepository", "Failed to refresh spacecraft for agencyId: $agencyId", e)
+            Log.e("SpacecraftRepository", "Failed to refresh spacecraft", e)
             throw e
         }
     }
+
 
     override suspend fun getSpacecraftById(id: Int): Spacecraft? {
         Log.d("SpacecraftRepository", "Fetching spacecraft by ID: $id")

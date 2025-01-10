@@ -22,8 +22,11 @@ interface AgencyDao {
 
 @Dao
 interface SpacecraftDao {
-    @Query("SELECT * FROM spacecraft WHERE agencyId = :agencyId")
-    fun getSpacecraftByAgency(agencyId: Int?): Flow<List<SpacecraftEntity>> //agencyId is nullable
+    @Query("""
+        SELECT * FROM spacecraft 
+        WHERE (:agencyId IS NULL) OR (agencyId = :agencyId)
+    """)
+    fun getSpacecraftByAgency(agencyId: Int?): Flow<List<SpacecraftEntity>>
 
     @Query("SELECT * FROM spacecraft WHERE id = :id")
     suspend fun getSpacecraftById(id: Int): SpacecraftEntity?
@@ -36,12 +39,18 @@ interface SpacecraftDao {
 
     @Transaction
     suspend fun upsertSpacecraftForAgency(agencyId: Int, spacecraft: List<SpacecraftEntity>) {
-        Log.d("SpacecraftDao", "Deleting spacecraft for agencyId: $agencyId")
-        deleteSpacecraftByAgency(agencyId)
-        Log.d("SpacecraftDao", "Inserting spacecraft: $spacecraft")
-        insertSpacecraft(spacecraft)
-    }
+        Log.d("SpacecraftDao", "Starting upsert for ${spacecraft.size} spacecraft")
 
-    @Delete
-    suspend fun deleteSpacecraft(spacecraft: SpacecraftEntity)
+        // Less strict validation - only check for null agencyId
+        val validSpacecraft = spacecraft.filter { it.agencyId != null }
+
+        if (validSpacecraft.isEmpty()) {
+            Log.w("SpacecraftDao", "No valid spacecraft to insert")
+            return
+        }
+
+        deleteSpacecraftByAgency(agencyId)
+        insertSpacecraft(validSpacecraft)
+        Log.d("SpacecraftDao", "Successfully upserted ${validSpacecraft.size} spacecraft")
+    }
 }

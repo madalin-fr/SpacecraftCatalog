@@ -10,21 +10,25 @@ import com.example.spacecraftcatalog.data.model.SpacecraftStatus as DataSpacecra
 import com.example.spacecraftcatalog.domain.model.Spacecraft
 import com.example.spacecraftcatalog.domain.model.SpacecraftStatus as DomainSpacecraftStatus
 
-fun SpacecraftDto.toSpacecraftEntity() : SpacecraftEntity{
-    Log.d("SpacecraftMapper", "Mapping SpacecraftDto: $this")
-    val entity = SpacecraftEntity(
+fun SpacecraftDto.toSpacecraftEntity(requestedAgencyId: Int? = null): SpacecraftEntity {
+    // Use either the agency from DTO or the requested agency ID
+    val resolvedAgencyId = agency?.id ?: requestedAgencyId
+
+    if (resolvedAgencyId == null) {
+        Log.e("SpacecraftMapper", "Cannot resolve agency ID for spacecraft: $name")
+    }
+
+    return SpacecraftEntity(
         id = id,
         name = name,
         serialNumber = serialNumber,
-        description = description,
+        description = description ?: "",
         imageUrl = imageUrl,
-        // Use elvis operator ?:, if agency is null -> return null
-        agencyId = if (agency != null ) agency.id else null,
+        agencyId = resolvedAgencyId,
         status = status.name.let { SpacecraftStatus.fromApiName(it).name }
     )
-    Log.d("SpacecraftMapper", "Mapped SpacecraftEntity: $entity")
-    return entity
 }
+
 
 
 fun SpacecraftEntity.toSpacecraft() = Spacecraft(

@@ -27,9 +27,7 @@ data class AgencyEntity(
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [
-        Index("agencyId")
-    ]
+    indices = [Index("agencyId")]
 )
 data class SpacecraftEntity(
     @PrimaryKey val id: Int,
@@ -37,6 +35,6 @@ data class SpacecraftEntity(
     val serialNumber: String?,
     val description: String?,
     val imageUrl: String?,
-    val agencyId: Int?, // Make the agencyId nullable
+    val agencyId: Int?, // This is nullable
     val status: String
 )

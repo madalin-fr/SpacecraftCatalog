@@ -53,9 +53,10 @@ class SpacecraftListViewModel @Inject constructor(
     fun refreshSpacecraft() {
         viewModelScope.launch {
             try {
+
                 _state.value = _state.value.copy(isLoading = true)
                 refreshSpacecraftForAgencyUseCase(agencyId)
-                getSpacecraft() // Load after refreshing
+                getSpacecraft()// Load after refreshing, will update flow
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     error = e.message,
