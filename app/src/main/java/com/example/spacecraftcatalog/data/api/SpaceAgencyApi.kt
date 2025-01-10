@@ -11,7 +11,8 @@ import retrofit2.http.Query
 interface SpaceAgencyApi {
     @GET("agencies/")
     suspend fun getAgencies(
-        @Query("limit") limit: Int = 100
+        @Query("limit") limit: Int = 100,
+        @Query("offset") offset: Int = 0 // Add offset parameter
     ): AgencyResponse
 
     @GET("agencies/{id}/")
@@ -21,6 +22,7 @@ interface SpaceAgencyApi {
 
     @GET("spacecraft/")
     suspend fun getSpacecraft(
-        @Query("limit") limit: Int = 100
+        @Query("limit") limit: Int = 100,
+        @Query("offset") offset: Int = 0 // Add offset parameter
     ): SpacecraftResponse
 }

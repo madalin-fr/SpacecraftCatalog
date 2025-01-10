@@ -6,6 +6,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface SpacecraftRepository {
     fun getAllSpacecraft(): Flow<List<Spacecraft>>
-    suspend fun refreshSpacecraft()
+    suspend fun refreshSpacecraft(shuffle: Boolean = false)
     suspend fun getSpacecraftById(id: Int): Spacecraft?
 }

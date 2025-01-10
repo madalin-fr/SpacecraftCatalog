@@ -9,8 +9,8 @@ fun AgencyDto.toAgencyEntity() = AgencyEntity(
     id = id,
     name = name,
     description = description,
-    imageUrl = image?.imageUrl,  // Updated to use nested image URL
-    foundingYear = foundingYear?.toString(),
+    imageUrl = image?.imageUrl,  // Handle nested nullability
+    foundingYear = foundingYear,
     administrator = administrator,
     url = url
 )

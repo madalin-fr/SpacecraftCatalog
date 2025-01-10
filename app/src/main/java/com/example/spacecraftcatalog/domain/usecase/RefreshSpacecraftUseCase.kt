@@ -6,7 +6,7 @@ import javax.inject.Inject
 class RefreshSpacecraftUseCase @Inject constructor(
     private val repository: SpacecraftRepository
 ) {
-    suspend operator fun invoke() {
-        repository.refreshSpacecraft()
+    suspend operator fun invoke(shuffle: Boolean = false) {
+        repository.refreshSpacecraft(shuffle)
     }
 }

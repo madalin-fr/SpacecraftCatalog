@@ -53,19 +53,17 @@ class SpacecraftListViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
-    fun refreshSpacecraft() {
+    fun refreshSpacecraft(shuffle: Boolean = false) {
         viewModelScope.launch {
             try {
                 _state.update { it.copy(isLoading = true) }
-                refreshSpacecraftUseCase() // No 'id' parameter needed here now
-                getSpacecraft() // Reload the data after refresh
+                refreshSpacecraftUseCase(shuffle)
+                getSpacecraft()
             } catch (e: Exception) {
-                _state.update {
-                    it.copy(
-                        error = e.message ?: "Unknown error",
-                        isLoading = false
-                    )
-                }
+                _state.update { it.copy(
+                    error = e.message,
+                    isLoading = false
+                ) }
             }
         }
     }

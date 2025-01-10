@@ -45,12 +45,12 @@ class AgencyListViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
-    fun refreshAgencies() {
+    fun refreshAgencies(shuffle: Boolean = false) {
         viewModelScope.launch {
             try {
                 _state.value = _state.value.copy(isLoading = true)
-                refreshAgenciesUseCase()
-                // No need to call getAgencies() as the Flow will emit new values
+                refreshAgenciesUseCase(shuffle) // Pass the shuffle flag
+                getAgencies() // Update UI with the latest data
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     error = e.message,

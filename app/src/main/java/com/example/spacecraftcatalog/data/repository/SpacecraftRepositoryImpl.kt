@@ -13,6 +13,7 @@ import com.example.spacecraftcatalog.domain.model.Spacecraft
 import com.example.spacecraftcatalog.domain.repository.SpacecraftRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import java.io.IOException
 import javax.inject.Inject
 
@@ -32,17 +33,31 @@ class SpacecraftRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun refreshSpacecraft() {
+    override suspend fun refreshSpacecraft(shuffle: Boolean) {
         if (!isNetworkAvailable()) {
-            throw IOException("No internet connection available")
+            if (shuffle) {
+                // Shuffle locally if offline
+                val localData = spacecraftDao.getAllSpacecraft()
+                    .toList().firstOrNull() ?: emptyList()
+                val shuffledData = localData.shuffled()
+                spacecraftDao.insertSpacecraft(shuffledData)
+            }
+            return
         }
 
+        val totalCount = try {
+            api.getSpacecraft(limit = 1).count // Fetch total count for pagination
+        } catch (e: Exception) {
+            throw IOException("Failed to fetch total count: ${e.message}")
+        }
+
+        val randomOffset = if (shuffle) {
+            (0 until totalCount step 100).toList().random()
+        } else 0
+
         try {
-            val response = api.getSpacecraft(limit = 100)
-            val spacecraftEntities = response.results.map {
-                it.toSpacecraftEntity()
-            }
-            spacecraftDao.insertSpacecraft(spacecraftEntities)
+            val response = api.getSpacecraft(limit = 100, offset = randomOffset)
+            spacecraftDao.insertSpacecraft(response.results.map { it.toSpacecraftEntity() })
         } catch (e: Exception) {
             throw IOException("Failed to refresh spacecraft: ${e.message}", e)
         }

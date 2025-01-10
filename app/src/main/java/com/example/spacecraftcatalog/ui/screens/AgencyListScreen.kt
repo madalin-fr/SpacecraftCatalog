@@ -12,7 +12,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,6 +63,11 @@ fun AgencyListScreen(
             topBar = {
                 CenterAlignedTopAppBar(
                     title = { Text("Space Agencies") },
+                    actions = {
+                        Button(onClick = { viewModel.refreshAgencies(shuffle = true) }) {
+                            Text("Shuffle")
+                        }
+                    },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         titleContentColor = MaterialTheme.colorScheme.onPrimary
@@ -78,21 +82,17 @@ fun AgencyListScreen(
             ) {
                 when {
                     state.isLoading -> {
-                        CircularProgressIndicator(
-                            modifier = Modifier.align(Alignment.Center)
-                        )
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                     }
                     state.error != null -> {
                         ErrorContent(
                             error = state.error!!,
-                            onRetry = viewModel::refreshAgencies,
+                            onRetry = { viewModel.refreshAgencies() },
                             modifier = Modifier.align(Alignment.Center)
                         )
                     }
                     state.agencies.isEmpty() -> {
-                        EmptyContent(
-                            modifier = Modifier.align(Alignment.Center)
-                        )
+                        EmptyContent(modifier = Modifier.align(Alignment.Center))
                     }
                     else -> {
                         AgencyList(
@@ -101,6 +101,7 @@ fun AgencyListScreen(
                         )
                     }
                 }
+
 
                 if (state.isLoading) {
                     LinearProgressIndicator(

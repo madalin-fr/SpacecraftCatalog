@@ -7,5 +7,7 @@ import javax.inject.Inject
 class RefreshAgenciesUseCase @Inject constructor(
     private val repository: AgencyRepository
 ) {
-    suspend operator fun invoke() = repository.refreshAgencies()
+    suspend operator fun invoke(shuffle: Boolean) {
+        repository.refreshAgencies(shuffle)
+    }
 }
