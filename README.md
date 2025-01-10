@@ -1,108 +1,101 @@
-Spacecraft Catalog
+# Spacecraft Catalog
 
 A modern Android application that showcases a catalog of space agencies and spacecraft, allowing users to explore detailed information and dynamically shuffle the data. The app supports offline functionality through local caching, providing a seamless experience even without an internet connection.
 
-Features
+---
 
-Agency and Spacecraft Catalogs:
+## Features
 
-View a list of space agencies and spacecraft.
+- **Agency and Spacecraft Catalogs**:
+    - View a list of space agencies and spacecraft.
+    - Explore detailed information for each agency or spacecraft, including images, descriptions, and related metadata.
 
-Explore detailed information for each agency or spacecraft, including images, descriptions, and related metadata.
+- **Dynamic Shuffle**:
+    - Refresh and shuffle the displayed data, either from the server (online) or from cached data (offline).
 
-Dynamic Shuffle:
+- **Offline Support**:
+    - Fully functional offline experience using Room database for local caching.
 
-Refresh and shuffle the displayed data, either from the server (online) or from cached data (offline).
+- **Modern Android Architecture**:
+    - MVVM architecture with Jetpack components.
+    - Dependency injection using Hilt.
+    - State management with Kotlin Flow and Compose.
 
-Offline Support:
+- **UI/UX**:
+    - Intuitive and responsive UI built with Jetpack Compose.
+    - Dark and light mode support.
 
-Fully functional offline experience using Room database for local caching.
+---
 
-Modern Android Architecture:
+## Tech Stack
 
-MVVM architecture with Jetpack components.
+- **Programming Language**: Kotlin
+- **Architecture**: MVVM
+- **UI Toolkit**: Jetpack Compose
+- **Networking**: Retrofit
+- **Dependency Injection**: Hilt
+- **Database**: Room
+- **Asynchronous Programming**: Kotlin Coroutines and Flow
+- **Image Loading**: Coil
+- **Build System**: Gradle
 
-Dependency injection using Hilt.
+---
 
-State management with Kotlin Flow and Compose.
 
-UI/UX:
+## Screenshots
 
-Intuitive and responsive UI built with Jetpack Compose.
 
-Dark and light mode support.
+https://github.com/user-attachments/assets/f6ed74c8-cf4d-489d-b3a8-d67fd3bbc71b
 
-Tech Stack
 
-Programming Language: Kotlin
 
-Architecture: MVVM
 
-UI Toolkit: Jetpack Compose
+```
 
-Networking: Retrofit
+## Installation and Setup
 
-Dependency Injection: Hilt
+### Prerequisites
+- **Android Studio**: Version 2022.3 or higher.
+- **Android Device/Emulator**: Android 7.0 (API level 24) or higher.
 
-Database: Room
-
-Asynchronous Programming: Kotlin Coroutines and Flow
-
-Image Loading: Coil
-
-Build System: Gradle
-
-Installation and Setup
-
-Prerequisites
-
-Android Studio: Version 2022.3 or higher.
-
-Android Device/Emulator: Android 7.0 (API level 24) or higher.
-
-Clone the Repository
-
+### Clone the Repository
+```bash
 git clone <repository-url>
 cd spacecraft-catalog
+```
 
-Open in Android Studio
+### Open in Android Studio
+1. Open Android Studio.
+2. Select **File > Open**.
+3. Navigate to the cloned project directory and select it.
 
-Open Android Studio.
+### Build the Project
+1. Sync Gradle by clicking **Sync Now** when prompted.
+2. Select a target device or emulator.
+3. Run the project by clicking the **Run** button or pressing `Shift + F10`.
 
-Select File > Open.
+---
 
-Navigate to the cloned project directory and select it.
+## API Usage
 
-Build the Project
+The app utilizes the **Space Devs API** to fetch data:
 
-Sync Gradle by clicking Sync Now when prompted.
+- **Endpoints Used**:
+    - Agencies: `/agencies/`
+    - Spacecraft: `/spacecraft/`
 
-Select a target device or emulator.
+- **Pagination**:
+    - The API provides data in batches of 100 items, using an offset parameter for pagination.
 
-Run the project by clicking the Run button or pressing Shift + F10.
+- **Offline Mode**:
+    - Data fetched from the API is cached locally using Room database.
+    - Shuffle functionality works offline by randomizing the cached data.
 
-API Usage
+---
 
-The app utilizes the Space Devs API to fetch data:
+## Directory Structure
 
-Endpoints Used:
-
-Agencies: /agencies/
-
-Spacecraft: /spacecraft/
-
-Pagination:
-
-The API provides data in batches of 100 items, using an offset parameter for pagination.
-
-Offline Mode:
-
-Data fetched from the API is cached locally using Room database.
-
-Shuffle functionality works offline by randomizing the cached data.
-
-Directory Structure
-
+```
 app/src/main/java/com/example/spacecraftcatalog/
 |
 ├── data/          # Data layer (API, DB, Repositories)
@@ -110,95 +103,79 @@ app/src/main/java/com/example/spacecraftcatalog/
 |├── ui/            # UI layer (Screens, Components, ViewModels)
 |├── util/          # Utility classes and helpers
 |├── di/            # Dependency Injection modules
+```
 
-Key Files
+---
 
-Data Layer
+## Key Files
 
-data/api/SpaceAgencyApi.kt:
+### Data Layer
+- **`data/api/SpaceAgencyApi.kt`**:
+    - Defines Retrofit API endpoints for fetching agency and spacecraft data.
+- **`data/db/SpaceCatalogDatabase.kt`**:
+    - Implements the Room database for local caching.
+- **`data/repository/AgencyRepositoryImpl.kt`**:
+    - Repository implementation for agencies with online and offline handling.
+- **`data/repository/SpacecraftRepositoryImpl.kt`**:
+    - Repository implementation for spacecraft with similar functionality.
 
-Defines Retrofit API endpoints for fetching agency and spacecraft data.
+### UI Layer
+- **`ui/screens/AgencyListScreen.kt`**:
+    - Displays the list of space agencies.
+    - Includes shuffle functionality with offline support.
+- **`ui/screens/SpacecraftListScreen.kt`**:
+    - Displays the list of spacecraft.
+- **`ui/screens/DetailsScreens`**:
+    - Details for agencies and spacecraft with images and metadata.
 
-data/db/SpaceCatalogDatabase.kt:
+### Domain Layer
+- **`domain/usecase`**:
+    - Includes use cases for fetching and refreshing agencies and spacecraft.
 
-Implements the Room database for local caching.
+---
 
-data/repository/AgencyRepositoryImpl.kt:
+## Offline Functionality
 
-Repository implementation for agencies with online and offline handling.
+### How It Works
+1. **Caching**:
+    - Data fetched from the API is stored in a Room database.
+2. **Fallback to Cache**:
+    - If the device is offline, the app retrieves data from the local cache.
+3. **Shuffling Offline**:
+    - The app randomizes the locally cached data for shuffle functionality.
 
-data/repository/SpacecraftRepositoryImpl.kt:
+---
 
-Repository implementation for spacecraft with similar functionality.
+## Migration Updates
 
-UI Layer
+### Database Migrations
+- **Version 2 to 3**:
+    - Updated `spacecraft` table structure to improve flexibility and maintainability.
+    - Migration logic ensures data preservation during upgrades.
 
-ui/screens/AgencyListScreen.kt:
+---
 
-Displays the list of space agencies.
-
-Includes shuffle functionality with offline support.
-
-ui/screens/SpacecraftListScreen.kt:
-
-Displays the list of spacecraft.
-
-ui/screens/DetailsScreens:
-
-Details for agencies and spacecraft with images and metadata.
-
-Domain Layer
-
-domain/usecase:
-
-Includes use cases for fetching and refreshing agencies and spacecraft.
-
-Offline Functionality
-
-How It Works
-
-Caching:
-
-Data fetched from the API is stored in a Room database.
-
-Fallback to Cache:
-
-If the device is offline, the app retrieves data from the local cache.
-
-Shuffling Offline:
-
-The app randomizes the locally cached data for shuffle functionality.
-
-Migration Updates
-
-Database Migrations
-
-Version 2 to 3:
-
-Updated spacecraft table structure to improve flexibility and maintainability.
-
-Migration logic ensures data preservation during upgrades.
-
-Contributing
+## Contributing
 
 We welcome contributions to the Spacecraft Catalog project! To contribute:
+1. Fork the repository.
+2. Create a feature branch.
+3. Commit your changes and push the branch.
+4. Submit a pull request.
 
-Fork the repository.
+---
 
-Create a feature branch.
+## License
 
-Commit your changes and push the branch.
+This project is licensed under the MIT License. See the `LICENSE` file for details.
 
-Submit a pull request.
+---
 
-License
+## Acknowledgments
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+- **Space Devs API**: For providing open data on space agencies and spacecraft.
+- **Jetpack Compose Community**: For resources and inspiration.
 
-Acknowledgments
 
-Space Devs API: For providing open data on space agencies and spacecraft.
-
-Jetpack Compose Community: For resources and inspiration.
 
 
