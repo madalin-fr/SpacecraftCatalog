@@ -3,8 +3,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.hilt)
-    alias(libs.plugins.ksp)
-    id("org.jetbrains.kotlin.kapt") // Explicitly apply kapt plugin
+    alias(libs.plugins.kotlin.kapt)
 }
 
 android {
@@ -66,6 +65,7 @@ dependencies {
     val composeBom = platform(libs.compose.bom)
     implementation(composeBom)
     androidTestImplementation(composeBom)
+
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.graphics)
@@ -81,7 +81,7 @@ dependencies {
     implementation(libs.room.ktx)
     implementation(libs.hilt.android)
 
-    ksp(libs.room.compiler)
+    kapt(libs.room.compiler)  // Changed from ksp to kapt
     kapt(libs.hilt.compiler)
 
     implementation(libs.coil.compose)

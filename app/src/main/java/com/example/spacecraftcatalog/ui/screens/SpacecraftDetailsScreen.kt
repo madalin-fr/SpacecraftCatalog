@@ -1,7 +1,7 @@
 // ui/screens/SpacecraftDetailsScreen.kt
 package com.example.spacecraftcatalog.ui.screens
 
-import SpacecraftDetailsViewModel
+import com.example.spacecraftcatalog.ui.viewmodel.SpacecraftDetailsViewModel
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll

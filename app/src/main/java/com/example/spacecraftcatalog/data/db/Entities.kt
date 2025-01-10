@@ -4,6 +4,7 @@ package com.example.spacecraftcatalog.data.db
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.ForeignKey
+import androidx.room.Index
 
 @Entity(tableName = "agencies")
 data class AgencyEntity(
@@ -25,6 +26,9 @@ data class AgencyEntity(
             childColumns = ["agencyId"],
             onDelete = ForeignKey.CASCADE
         )
+    ],
+    indices = [
+        Index("agencyId")
     ]
 )
 data class SpacecraftEntity(

@@ -1,3 +1,5 @@
+package com.example.spacecraftcatalog.ui.viewmodel
+
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,6 +13,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 // ui/viewmodel/SpacecraftDetailsViewModel.kt
+
 @HiltViewModel
 class SpacecraftDetailsViewModel @Inject constructor(
     private val getSpacecraftByIdUseCase: GetSpacecraftByIdUseCase,
