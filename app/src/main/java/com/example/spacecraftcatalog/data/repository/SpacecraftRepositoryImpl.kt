@@ -3,7 +3,6 @@ package com.example.spacecraftcatalog.data.repository
 
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.util.Log
 import com.example.spacecraftcatalog.data.api.SpaceAgencyApi
 import com.example.spacecraftcatalog.data.db.AgencyDao
 import com.example.spacecraftcatalog.data.db.SpacecraftDao
@@ -19,46 +18,41 @@ import javax.inject.Inject
 
 class SpacecraftRepositoryImpl @Inject constructor(
     private val api: SpaceAgencyApi,
-    private val dao: SpacecraftDao,
+    private val spacecraftDao: SpacecraftDao,
     private val agencyDao: AgencyDao,
     private val connectivityManager: ConnectivityManager
 ) : SpacecraftRepository {
 
-    override fun getSpacecraftByAgency(agencyId: Int): Flow<List<Spacecraft>> {
-        return dao.getSpacecraftByAgency(agencyId).map { entities ->
+    override fun getAllSpacecraft(): Flow<List<Spacecraft>> {
+        return spacecraftDao.getAllSpacecraft().map { entities ->
             entities.map { entity ->
-                val agency = agencyDao.getAgencyById(entity.agencyId ?: -1)
-                entity.toSpacecraft(agency?.toAgency())
+                val agency = entity.agencyId?.let { agencyDao.getAgencyById(it)?.toAgency() }
+                entity.toSpacecraft(agency)
             }
         }
     }
 
-    override suspend fun refreshSpacecraftForAgency(agencyId: Int) {
+    override suspend fun refreshSpacecraft() {
         if (!isNetworkAvailable()) {
             throw IOException("No internet connection available")
         }
 
         try {
-            val response = api.getSpacecraft(limit = 100, agencyId = agencyId)
-            val spacecraftEntities = response.results.mapNotNull { dto ->
-                try {
-                    dto.toSpacecraftEntity(requestedAgencyId = agencyId)
-                } catch (e: Exception) {
-                    Log.e("SpacecraftRepo", "Error mapping spacecraft", e)
-                    null
-                }
+            val response = api.getSpacecraft(limit = 100)
+            val spacecraftEntities = response.results.map {
+                it.toSpacecraftEntity()
             }
-            dao.upsertSpacecraftForAgency(agencyId, spacecraftEntities)
+            spacecraftDao.insertSpacecraft(spacecraftEntities)
         } catch (e: Exception) {
             throw IOException("Failed to refresh spacecraft: ${e.message}", e)
         }
     }
 
-
-
-
     override suspend fun getSpacecraftById(id: Int): Spacecraft? {
-        return dao.getSpacecraftById(id)?.toSpacecraft()
+        return spacecraftDao.getSpacecraftById(id)?.let { entity ->
+            val agency = entity.agencyId?.let { agencyDao.getAgencyById(it)?.toAgency() }
+            entity.toSpacecraft(agency)
+        }
     }
 
     private fun isNetworkAvailable(): Boolean {

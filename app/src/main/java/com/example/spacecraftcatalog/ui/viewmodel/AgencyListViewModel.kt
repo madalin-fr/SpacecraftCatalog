@@ -1,12 +1,10 @@
 // ui/viewmodel/AgencyListViewModel.kt
 package com.example.spacecraftcatalog.ui.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.spacecraftcatalog.domain.usecase.GetAgenciesUseCase
 import com.example.spacecraftcatalog.domain.usecase.RefreshAgenciesUseCase
-import com.example.spacecraftcatalog.domain.usecase.RefreshSpacecraftForAgencyUseCase
 import com.example.spacecraftcatalog.ui.state.AgencyListState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +19,6 @@ import javax.inject.Inject
 class AgencyListViewModel @Inject constructor(
     private val getAgenciesUseCase: GetAgenciesUseCase,
     private val refreshAgenciesUseCase: RefreshAgenciesUseCase,
-    private val refreshSpacecraftForAgencyUseCase: RefreshSpacecraftForAgencyUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(AgencyListState())
     val state: StateFlow<AgencyListState> = _state
@@ -63,14 +60,4 @@ class AgencyListViewModel @Inject constructor(
         }
     }
 
-    fun selectAgency(agencyId: Int) {
-        viewModelScope.launch {
-            try {
-                refreshSpacecraftForAgencyUseCase(agencyId)
-            } catch (e: Exception) {
-                // Log error but don't update state as this is a background operation
-                Log.e("AgencyListViewModel", "Error fetching spacecraft for agency $agencyId", e)
-            }
-        }
-    }
 }

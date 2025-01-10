@@ -8,4 +8,5 @@ interface AgencyRepository {
     fun getAgencies(): Flow<List<Agency>>
     suspend fun refreshAgencies()
     suspend fun getAgencyById(id: Int): Agency?
+    suspend fun refreshAgency(id: Int)
 }

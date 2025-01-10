@@ -1,32 +1,30 @@
 // ui/viewmodel/SpacecraftListViewModel.kt
 package com.example.spacecraftcatalog.ui.viewmodel
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.spacecraftcatalog.domain.usecase.GetSpacecraftForAgencyUseCase
-import com.example.spacecraftcatalog.domain.usecase.RefreshSpacecraftForAgencyUseCase
+import com.example.spacecraftcatalog.domain.usecase.GetAllSpacecraftUseCase
+import com.example.spacecraftcatalog.domain.usecase.RefreshSpacecraftUseCase
 import com.example.spacecraftcatalog.ui.state.SpacecraftListState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SpacecraftListViewModel @Inject constructor(
-    private val getSpacecraftForAgencyUseCase: GetSpacecraftForAgencyUseCase,
-    private val refreshSpacecraftForAgencyUseCase: RefreshSpacecraftForAgencyUseCase,
-    savedStateHandle: SavedStateHandle
+    private val getAllSpacecraftUseCase: GetAllSpacecraftUseCase,
+    private val refreshSpacecraftUseCase: RefreshSpacecraftUseCase
 ) : ViewModel() {
 
-    private val agencyId: Int = checkNotNull(savedStateHandle["agencyId"])
-
     private val _state = MutableStateFlow(SpacecraftListState())
-    val state: StateFlow<SpacecraftListState> = _state
+    val state: StateFlow<SpacecraftListState> = _state.asStateFlow()
 
     init {
         getSpacecraft()
@@ -34,18 +32,23 @@ class SpacecraftListViewModel @Inject constructor(
     }
 
     private fun getSpacecraft() {
-        getSpacecraftForAgencyUseCase(agencyId)
+        getAllSpacecraftUseCase()
             .onEach { spacecraft ->
-                _state.value = _state.value.copy(
-                    spacecraft = spacecraft,
-                    isLoading = false
-                )
+                _state.update {
+                    it.copy(
+                        spacecraft = spacecraft,
+                        isLoading = false,
+                        error = null
+                    )
+                }
             }
             .catch { error ->
-                _state.value = _state.value.copy(
-                    error = error.message,
-                    isLoading = false
-                )
+                _state.update {
+                    it.copy(
+                        error = error.message ?: "Unknown error",
+                        isLoading = false
+                    )
+                }
             }
             .launchIn(viewModelScope)
     }
@@ -53,15 +56,16 @@ class SpacecraftListViewModel @Inject constructor(
     fun refreshSpacecraft() {
         viewModelScope.launch {
             try {
-
-                _state.value = _state.value.copy(isLoading = true)
-                refreshSpacecraftForAgencyUseCase(agencyId)
-                getSpacecraft()// Load after refreshing, will update flow
+                _state.update { it.copy(isLoading = true) }
+                refreshSpacecraftUseCase() // No 'id' parameter needed here now
+                getSpacecraft() // Reload the data after refresh
             } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    error = e.message,
-                    isLoading = false
-                )
+                _state.update {
+                    it.copy(
+                        error = e.message ?: "Unknown error",
+                        isLoading = false
+                    )
+                }
             }
         }
     }

@@ -39,6 +39,19 @@ class AgencyRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun refreshAgency(id: Int) {
+        if (!isNetworkAvailable()) {
+            throw IOException("No internet connection available")
+        }
+
+        try {
+            val response = api.getAgencyById(id)
+            dao.insertAgency(response.toAgencyEntity())
+        } catch (e: Exception) {
+            throw IOException("Failed to refresh agency: ${e.message}", e)
+        }
+    }
+
     override suspend fun getAgencyById(id: Int): Agency? {
         return dao.getAgencyById(id)?.toAgency()
     }

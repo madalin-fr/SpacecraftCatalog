@@ -1,5 +1,4 @@
 // ui/MainActivity.kt
-
 package com.example.spacecraftcatalog
 
 import android.os.Bundle
