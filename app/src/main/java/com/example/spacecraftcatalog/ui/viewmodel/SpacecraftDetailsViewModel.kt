@@ -51,7 +51,7 @@ class SpacecraftDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _state.value = _state.value.copy(isLoading = true)
-                refreshSpacecraftUseCase(spacecraftId)
+                refreshSpacecraftUseCase() // Corrected: No argument passed
                 getSpacecraft() // Load after refreshing
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
