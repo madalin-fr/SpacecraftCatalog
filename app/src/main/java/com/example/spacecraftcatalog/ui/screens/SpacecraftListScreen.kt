@@ -154,6 +154,12 @@ private fun SpacecraftList(
                             maxLines = 3,
                             overflow = TextOverflow.Ellipsis
                         )
+                        if (spacecraft.agency?.name != null) {
+                            Text(
+                                text = "Agency: ${spacecraft.agency.name}",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
                     }
                 }
             }

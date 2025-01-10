@@ -12,16 +12,27 @@ data class SpacecraftDto(
     @SerializedName("image_url")
     val imageUrl: String?,
     val agency: AgencyDto?,
-    val status: SpacecraftStatus
+    val status: SpacecraftStatusDto
+)
+
+data class SpacecraftStatusDto(
+    val id: Int,
+    val name: String
 )
 
 enum class SpacecraftStatus {
-    @SerializedName("Active")
     ACTIVE,
-    @SerializedName("Retired")
     RETIRED,
-    @SerializedName("In Development")
     IN_DEVELOPMENT,
-    @SerializedName("Unknown")
-    UNKNOWN
+    UNKNOWN;
+
+    companion object {
+        fun fromApiName(name: String): SpacecraftStatus = when (name.uppercase()) {
+            "ACTIVE" -> ACTIVE
+            "RETIRED" -> RETIRED
+            "IN DEVELOPMENT" -> IN_DEVELOPMENT
+            "SINGLE USE" -> RETIRED  // Map single use to retired
+            else -> UNKNOWN
+        }
+    }
 }

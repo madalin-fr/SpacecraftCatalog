@@ -37,6 +37,6 @@ data class SpacecraftEntity(
     val serialNumber: String?,
     val description: String?,
     val imageUrl: String?,
-    val agencyId: Int?,
+    val agencyId: Int?, // Make the agencyId nullable
     val status: String
 )

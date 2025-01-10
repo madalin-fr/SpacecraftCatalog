@@ -1,7 +1,7 @@
 // ui/screens/AgencyListScreen.kt
-
 package com.example.spacecraftcatalog.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -72,7 +72,6 @@ fun AgencyListScreen(
                 }
             }
 
-            // Pull to refresh indicator
             if (state.isLoading) {
                 LinearProgressIndicator(
                     modifier = Modifier
@@ -83,7 +82,6 @@ fun AgencyListScreen(
         }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AgencyList(
@@ -101,7 +99,10 @@ private fun AgencyList(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column {
-                    // Agency Image
+                    // Log the image URL
+                    Log.d("AgencyImage", "Loading image for URL: ${agency.imageUrl}")
+
+                    // Agency Image with placeholder
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(agency.imageUrl)
@@ -112,8 +113,9 @@ private fun AgencyList(
                             .fillMaxWidth()
                             .height(200.dp),
                         contentScale = ContentScale.Crop,
+                        // Use placeholder for null or empty URLs
                         error = painterResource(R.drawable.ic_placeholder),
-                        placeholder = painterResource(R.drawable.ic_launcher_foreground)
+                        placeholder = painterResource(R.drawable.ic_placeholder)
                     )
 
                     // Agency Info

@@ -55,6 +55,7 @@ class SpacecraftListViewModel @Inject constructor(
             try {
                 _state.value = _state.value.copy(isLoading = true)
                 refreshSpacecraftForAgencyUseCase(agencyId)
+                getSpacecraft() // Load after refreshing
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     error = e.message,

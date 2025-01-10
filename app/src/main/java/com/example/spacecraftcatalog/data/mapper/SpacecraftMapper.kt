@@ -1,21 +1,31 @@
 // data/mapper/SpacecraftMapper.kt
 package com.example.spacecraftcatalog.data.mapper
 
+import android.util.Log
 import com.example.spacecraftcatalog.data.db.SpacecraftEntity
 import com.example.spacecraftcatalog.data.model.SpacecraftDto
+import com.example.spacecraftcatalog.data.model.SpacecraftStatus
+import com.example.spacecraftcatalog.data.model.SpacecraftStatusDto
 import com.example.spacecraftcatalog.data.model.SpacecraftStatus as DataSpacecraftStatus
 import com.example.spacecraftcatalog.domain.model.Spacecraft
 import com.example.spacecraftcatalog.domain.model.SpacecraftStatus as DomainSpacecraftStatus
 
-fun SpacecraftDto.toSpacecraftEntity() = SpacecraftEntity(
-    id = id,
-    name = name,
-    serialNumber = serialNumber,
-    description = description,
-    imageUrl = imageUrl,
-    agencyId = agency?.id,
-    status = status.toDomainStatus().name
-)
+fun SpacecraftDto.toSpacecraftEntity() : SpacecraftEntity{
+    Log.d("SpacecraftMapper", "Mapping SpacecraftDto: $this")
+    val entity = SpacecraftEntity(
+        id = id,
+        name = name,
+        serialNumber = serialNumber,
+        description = description,
+        imageUrl = imageUrl,
+        // Use elvis operator ?:, if agency is null -> return null
+        agencyId = if (agency != null ) agency.id else null,
+        status = status.name.let { SpacecraftStatus.fromApiName(it).name }
+    )
+    Log.d("SpacecraftMapper", "Mapped SpacecraftEntity: $entity")
+    return entity
+}
+
 
 fun SpacecraftEntity.toSpacecraft() = Spacecraft(
     id = id,
@@ -23,13 +33,23 @@ fun SpacecraftEntity.toSpacecraft() = Spacecraft(
     serialNumber = serialNumber,
     description = description ?: "",
     imageUrl = imageUrl,
-    agency = null, // Would need to be populated separately if needed
+    agency = null,
     status = try {
         DomainSpacecraftStatus.valueOf(status)
     } catch (e: IllegalArgumentException) {
         DomainSpacecraftStatus.UNKNOWN
     }
 )
+
+
+private fun SpacecraftStatusDto.toDomainStatus(): DomainSpacecraftStatus {
+    return when (name.uppercase()) {
+        "ACTIVE" -> DomainSpacecraftStatus.ACTIVE
+        "RETIRED" -> DomainSpacecraftStatus.RETIRED
+        "IN DEVELOPMENT" -> DomainSpacecraftStatus.IN_DEVELOPMENT
+        else -> DomainSpacecraftStatus.UNKNOWN
+    }
+}
 
 fun SpacecraftDto.toSpacecraft() = Spacecraft(
     id = id,
@@ -38,7 +58,7 @@ fun SpacecraftDto.toSpacecraft() = Spacecraft(
     description = description ?: "",
     imageUrl = imageUrl,
     agency = agency?.toAgency(),
-    status = status.toDomainStatus()
+    status = SpacecraftStatus.fromApiName(status.name).toDomainStatus()
 )
 
 private fun DataSpacecraftStatus.toDomainStatus(): DomainSpacecraftStatus {
