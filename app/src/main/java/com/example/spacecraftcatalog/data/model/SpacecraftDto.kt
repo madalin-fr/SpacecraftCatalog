@@ -1,6 +1,7 @@
 // data/model/SpacecraftDto.kt
 package com.example.spacecraftcatalog.data.model
 
+import android.util.Log
 import com.google.gson.annotations.SerializedName
 
 data class SpacecraftDto(
@@ -9,15 +10,32 @@ data class SpacecraftDto(
     @SerializedName("serial_number")
     val serialNumber: String?,
     val description: String?,
-    @SerializedName("image_url")
-    val imageUrl: String?,
-    val agency: AgencyDto?,
+    val image: SpacecraftImageDto?, // Add this field
+    @SerializedName("spacecraft_config")
+    val spacecraftConfig: SpacecraftConfigDto,
     val status: SpacecraftStatusDto
+) {
+    init {
+        Log.d("SpacecraftDto", "Created DTO with agency: ${spacecraftConfig.agency?.id}")
+    }
+}
+
+data class SpacecraftImageDto(
+    @SerializedName("image_url")
+    val imageUrl: String?
 )
+
 
 data class SpacecraftStatusDto(
     val id: Int,
     val name: String
+)
+
+data class SpacecraftConfigDto(
+    val id: Int,
+    val url: String,
+    val name: String,
+    val agency: AgencyDto?
 )
 
 enum class SpacecraftStatus {

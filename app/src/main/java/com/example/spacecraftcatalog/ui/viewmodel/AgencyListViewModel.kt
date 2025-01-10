@@ -20,13 +20,12 @@ class AgencyListViewModel @Inject constructor(
     private val getAgenciesUseCase: GetAgenciesUseCase,
     private val refreshAgenciesUseCase: RefreshAgenciesUseCase
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(AgencyListState())
     val state: StateFlow<AgencyListState> = _state
 
     init {
         getAgencies()
-        refreshAgencies()
+        refreshAgencies() // Initial refresh
     }
 
     private fun getAgencies() {
@@ -51,6 +50,7 @@ class AgencyListViewModel @Inject constructor(
             try {
                 _state.value = _state.value.copy(isLoading = true)
                 refreshAgenciesUseCase()
+                // No need to call getAgencies() as the Flow will emit new values
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     error = e.message,

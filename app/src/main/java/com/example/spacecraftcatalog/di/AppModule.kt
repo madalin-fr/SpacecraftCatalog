@@ -2,6 +2,7 @@
 package com.example.spacecraftcatalog.di
 
 import android.content.Context
+import android.net.ConnectivityManager
 import androidx.room.Room
 import com.example.spacecraftcatalog.data.api.SpaceAgencyApi
 import com.example.spacecraftcatalog.data.db.SpaceCatalogDatabase
@@ -43,6 +44,14 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideConnectivityManager(
+        @ApplicationContext context: Context
+    ): ConnectivityManager {
+        return context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    }
+
+    @Provides
+    @Singleton
     fun provideDatabase(
         @ApplicationContext context: Context
     ): SpaceCatalogDatabase {
@@ -50,7 +59,9 @@ object AppModule {
             context,
             SpaceCatalogDatabase::class.java,
             "space_catalog_db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides

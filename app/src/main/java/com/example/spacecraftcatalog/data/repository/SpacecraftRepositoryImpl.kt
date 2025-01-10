@@ -1,6 +1,8 @@
 // data/repository/SpacecraftRepositoryImpl.kt
 package com.example.spacecraftcatalog.data.repository
 
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.util.Log
 import com.example.spacecraftcatalog.data.api.SpaceAgencyApi
 import com.example.spacecraftcatalog.data.db.SpacecraftDao
@@ -10,55 +12,50 @@ import com.example.spacecraftcatalog.domain.model.Spacecraft
 import com.example.spacecraftcatalog.domain.repository.SpacecraftRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.io.IOException
 import javax.inject.Inject
 
 class SpacecraftRepositoryImpl @Inject constructor(
     private val api: SpaceAgencyApi,
-    private val dao: SpacecraftDao
+    private val dao: SpacecraftDao,
+    private val connectivityManager: ConnectivityManager
 ) : SpacecraftRepository {
 
     override fun getSpacecraftByAgency(agencyId: Int): Flow<List<Spacecraft>> {
-        Log.d("SpacecraftRepository", "Fetching spacecraft for agencyId: $agencyId")
         return dao.getSpacecraftByAgency(agencyId).map { entities ->
-            Log.d("SpacecraftRepository", "Retrieved ${entities.size} spacecraft(s) from database.")
-            if (entities.isEmpty()) {
-                Log.w("SpacecraftRepository", "No spacecraft found for agencyId: $agencyId")
-            }
             entities.map { it.toSpacecraft() }
         }
     }
 
     override suspend fun refreshSpacecraftForAgency(agencyId: Int) {
+        if (!isNetworkAvailable()) {
+            throw IOException("No internet connection available")
+        }
+
         try {
-            Log.d("SpacecraftRepository", "Refreshing spacecraft for agencyId: $agencyId")
             val response = api.getSpacecraft(limit = 100, agencyId = agencyId)
-
-            val spacecraftEntities = response.results.map { dto ->
-                dto.toSpacecraftEntity(requestedAgencyId = agencyId)
+            val spacecraftEntities = response.results.mapNotNull { dto ->
+                try {
+                    dto.toSpacecraftEntity(requestedAgencyId = agencyId)
+                } catch (e: Exception) {
+                    null
+                }
             }
-
-            // Validate before insertion
-            val validEntities = spacecraftEntities.filter { it.agencyId != null }
-            if (validEntities.isEmpty()) {
-                throw IllegalStateException("No valid spacecraft entities created for agency $agencyId")
-            }
-
-            dao.upsertSpacecraftForAgency(agencyId, validEntities)
-            Log.d("SpacecraftRepository", "Successfully updated ${validEntities.size} spacecraft records")
-
+            dao.upsertSpacecraftForAgency(agencyId, spacecraftEntities)
         } catch (e: Exception) {
-            Log.e("SpacecraftRepository", "Failed to refresh spacecraft", e)
-            throw e
+            throw IOException("Failed to refresh spacecraft: ${e.message}", e)
         }
     }
 
 
+
     override suspend fun getSpacecraftById(id: Int): Spacecraft? {
-        Log.d("SpacecraftRepository", "Fetching spacecraft by ID: $id")
-        return dao.getSpacecraftById(id)?.toSpacecraft().also {
-            if (it == null) {
-                Log.w("SpacecraftRepository", "No spacecraft found with ID: $id")
-            }
-        }
+        return dao.getSpacecraftById(id)?.toSpacecraft()
+    }
+
+    private fun isNetworkAvailable(): Boolean {
+        val network = connectivityManager.activeNetwork
+        val capabilities = connectivityManager.getNetworkCapabilities(network)
+        return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
     }
 }

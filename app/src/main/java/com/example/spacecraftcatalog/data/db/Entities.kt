@@ -24,7 +24,9 @@ data class AgencyEntity(
             entity = AgencyEntity::class,
             parentColumns = ["id"],
             childColumns = ["agencyId"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.CASCADE,
+            // Add this to allow null agencyId values
+            onUpdate = ForeignKey.CASCADE
         )
     ],
     indices = [Index("agencyId")]
@@ -35,6 +37,7 @@ data class SpacecraftEntity(
     val serialNumber: String?,
     val description: String?,
     val imageUrl: String?,
-    val agencyId: Int?, // This is nullable
+    // Keep nullable but add default null
+    val agencyId: Int? = null,
     val status: String
 )

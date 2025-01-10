@@ -21,6 +21,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.spacecraftcatalog.R
 import com.example.spacecraftcatalog.domain.model.Spacecraft
+import com.example.spacecraftcatalog.ui.components.EmptyContent
+import com.example.spacecraftcatalog.ui.components.ErrorContent
 import com.example.spacecraftcatalog.ui.viewmodel.SpacecraftListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -164,44 +166,5 @@ private fun SpacecraftList(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun ErrorContent(
-    error: String,
-    onRetry: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Error: $error",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.error
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onRetry) {
-            Text("Retry")
-        }
-    }
-}
-
-@Composable
-private fun EmptyContent(
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "No spacecraft found",
-            style = MaterialTheme.typography.bodyLarge
-        )
     }
 }

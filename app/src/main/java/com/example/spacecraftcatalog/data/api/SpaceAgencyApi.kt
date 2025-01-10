@@ -17,6 +17,6 @@ interface SpaceAgencyApi {
     suspend fun getSpacecraft(
         @Query("limit") limit: Int = 10,
         @Query("offset") offset: Int = 0,
-        @Query("agency__id") agencyId: Int? = null
+        @Query("agency_id") agencyId: Int  // Check if this matches your API documentation
     ): SpacecraftResponse
 }

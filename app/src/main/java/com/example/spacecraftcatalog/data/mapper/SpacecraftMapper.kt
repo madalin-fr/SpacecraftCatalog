@@ -11,11 +11,10 @@ import com.example.spacecraftcatalog.domain.model.Spacecraft
 import com.example.spacecraftcatalog.domain.model.SpacecraftStatus as DomainSpacecraftStatus
 
 fun SpacecraftDto.toSpacecraftEntity(requestedAgencyId: Int? = null): SpacecraftEntity {
-    // Use either the agency from DTO or the requested agency ID
-    val resolvedAgencyId = agency?.id ?: requestedAgencyId
+    val resolvedAgencyId = spacecraftConfig.agency?.id ?: requestedAgencyId
 
     if (resolvedAgencyId == null) {
-        Log.e("SpacecraftMapper", "Cannot resolve agency ID for spacecraft: $name")
+        Log.w("SpacecraftMapper", "No agency ID available for spacecraft: $name")
     }
 
     return SpacecraftEntity(
@@ -23,7 +22,7 @@ fun SpacecraftDto.toSpacecraftEntity(requestedAgencyId: Int? = null): Spacecraft
         name = name,
         serialNumber = serialNumber,
         description = description ?: "",
-        imageUrl = imageUrl,
+        imageUrl = image?.imageUrl, // Update to use nested image URL
         agencyId = resolvedAgencyId,
         status = status.name.let { SpacecraftStatus.fromApiName(it).name }
     )
@@ -45,7 +44,6 @@ fun SpacecraftEntity.toSpacecraft() = Spacecraft(
     }
 )
 
-
 private fun SpacecraftStatusDto.toDomainStatus(): DomainSpacecraftStatus {
     return when (name.uppercase()) {
         "ACTIVE" -> DomainSpacecraftStatus.ACTIVE
@@ -60,8 +58,8 @@ fun SpacecraftDto.toSpacecraft() = Spacecraft(
     name = name,
     serialNumber = serialNumber,
     description = description ?: "",
-    imageUrl = imageUrl,
-    agency = agency?.toAgency(),
+    imageUrl = image?.imageUrl, // Accessing nested image URL
+    agency = spacecraftConfig.agency?.toAgency(),
     status = SpacecraftStatus.fromApiName(status.name).toDomainStatus()
 )
 

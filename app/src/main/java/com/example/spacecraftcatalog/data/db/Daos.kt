@@ -24,9 +24,9 @@ interface AgencyDao {
 interface SpacecraftDao {
     @Query("""
         SELECT * FROM spacecraft 
-        WHERE (:agencyId IS NULL) OR (agencyId = :agencyId)
+        WHERE agencyId = :agencyId
     """)
-    fun getSpacecraftByAgency(agencyId: Int?): Flow<List<SpacecraftEntity>>
+    fun getSpacecraftByAgency(agencyId: Int): Flow<List<SpacecraftEntity>>
 
     @Query("SELECT * FROM spacecraft WHERE id = :id")
     suspend fun getSpacecraftById(id: Int): SpacecraftEntity?
@@ -41,16 +41,34 @@ interface SpacecraftDao {
     suspend fun upsertSpacecraftForAgency(agencyId: Int, spacecraft: List<SpacecraftEntity>) {
         Log.d("SpacecraftDao", "Starting upsert for ${spacecraft.size} spacecraft")
 
-        // Less strict validation - only check for null agencyId
-        val validSpacecraft = spacecraft.filter { it.agencyId != null }
+        try {
+            // First, verify the agency exists
+            val validAgencyIds = getValidAgencyIds()
 
-        if (validSpacecraft.isEmpty()) {
-            Log.w("SpacecraftDao", "No valid spacecraft to insert")
-            return
+            // Filter spacecraft to only include those with valid agency IDs
+            val validSpacecraft = spacecraft.filter { entity ->
+                entity.agencyId?.let { id ->
+                    validAgencyIds.contains(id)
+                } ?: false // Remove entries with null agencyId
+            }
+
+            if (validSpacecraft.isEmpty()) {
+                Log.w("SpacecraftDao", "No valid spacecraft to insert after filtering")
+                return
+            }
+
+            // Proceed with deletion and insertion
+            deleteSpacecraftByAgency(agencyId)
+            insertSpacecraft(validSpacecraft)
+
+            Log.d("SpacecraftDao", "Successfully upserted ${validSpacecraft.size} spacecraft")
+        } catch (e: Exception) {
+            Log.e("SpacecraftDao", "Error during upsert", e)
+            throw e
         }
-
-        deleteSpacecraftByAgency(agencyId)
-        insertSpacecraft(validSpacecraft)
-        Log.d("SpacecraftDao", "Successfully upserted ${validSpacecraft.size} spacecraft")
     }
+
+    @Query("SELECT id FROM agencies")
+    suspend fun getValidAgencyIds(): List<Int>
+
 }
