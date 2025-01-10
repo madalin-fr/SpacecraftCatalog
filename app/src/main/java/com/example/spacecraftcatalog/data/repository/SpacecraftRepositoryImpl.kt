@@ -11,9 +11,11 @@ import com.example.spacecraftcatalog.data.mapper.toSpacecraft
 import com.example.spacecraftcatalog.data.mapper.toSpacecraftEntity
 import com.example.spacecraftcatalog.domain.model.Spacecraft
 import com.example.spacecraftcatalog.domain.repository.SpacecraftRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import javax.inject.Inject
 
@@ -36,28 +38,40 @@ class SpacecraftRepositoryImpl @Inject constructor(
     override suspend fun refreshSpacecraft(shuffle: Boolean) {
         if (!isNetworkAvailable()) {
             if (shuffle) {
-                // Shuffle locally if offline
-                val localData = spacecraftDao.getAllSpacecraft()
-                    .toList().firstOrNull() ?: emptyList()
-                val shuffledData = localData.shuffled()
-                spacecraftDao.insertSpacecraft(shuffledData)
+                // Get current data
+                val currentData = spacecraftDao.getAllSpacecraft().first()
+
+                // Create new list of shuffled entities
+                val shuffledEntities = currentData.shuffled()
+
+                // Clear and reinsert to ensure order is preserved
+                withContext(Dispatchers.IO) {
+                    spacecraftDao.deleteAllSpacecraft() // Add this method to SpacecraftDao
+                    spacecraftDao.insertSpacecraft(shuffledEntities)
+                }
             }
             return
         }
 
-        val totalCount = try {
-            api.getSpacecraft(limit = 1).count // Fetch total count for pagination
-        } catch (e: Exception) {
-            throw IOException("Failed to fetch total count: ${e.message}")
-        }
-
-        val randomOffset = if (shuffle) {
-            (0 until totalCount step 100).toList().random()
-        } else 0
-
         try {
-            val response = api.getSpacecraft(limit = 100, offset = randomOffset)
-            spacecraftDao.insertSpacecraft(response.results.map { it.toSpacecraftEntity() })
+            val totalCount = api.getSpacecraft(limit = 1).count
+
+            val offset = if (shuffle && totalCount > 0) {
+                (0 until totalCount step 100).toList().random()
+            } else 0
+
+            val response = api.getSpacecraft(limit = 100, offset = offset)
+            val entities = if (shuffle) {
+                response.results.shuffled()
+            } else {
+                response.results
+            }.map { it.toSpacecraftEntity() }
+
+            // Clear existing data and insert new data
+            withContext(Dispatchers.IO) {
+                spacecraftDao.deleteAllSpacecraft()
+                spacecraftDao.insertSpacecraft(entities)
+            }
         } catch (e: Exception) {
             throw IOException("Failed to refresh spacecraft: ${e.message}", e)
         }

@@ -20,6 +20,9 @@ interface AgencyDao {
 
     @Delete
     suspend fun deleteAgency(agency: AgencyEntity)
+
+    @Query("DELETE FROM agencies")
+    suspend fun deleteAllAgencies()
 }
 
 @Dao
@@ -35,5 +38,8 @@ interface SpacecraftDao {
 
     @Query("SELECT * FROM spacecraft")
     fun getAllSpacecraft(): Flow<List<SpacecraftEntity>>
+
+    @Query("DELETE FROM spacecraft")
+    suspend fun deleteAllSpacecraft()
 
 }

@@ -9,9 +9,11 @@ import com.example.spacecraftcatalog.data.mapper.toAgency
 import com.example.spacecraftcatalog.domain.model.Agency
 import com.example.spacecraftcatalog.domain.repository.AgencyRepository
 import com.example.spacecraftcatalog.data.mapper.toAgencyEntity
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import javax.inject.Inject
 import kotlin.random.Random
@@ -31,36 +33,43 @@ class AgencyRepositoryImpl @Inject constructor(
     override suspend fun refreshAgencies(shuffle: Boolean) {
         if (!isNetworkAvailable()) {
             if (shuffle) {
-                val localData = dao.getAllAgencies().firstOrNull() ?: emptyList()
-                val shuffledData = localData.shuffled()
-                dao.insertAgencies(shuffledData)
+                // Get current data
+                val currentData = dao.getAllAgencies().first()
+
+                // Create new list of shuffled entities
+                val shuffledEntities = currentData.shuffled()
+
+                // Clear and reinsert to ensure order is preserved
+                withContext(Dispatchers.IO) {
+                    dao.deleteAllAgencies() // Add this method to AgencyDao
+                    dao.insertAgencies(shuffledEntities)
+                }
             }
             return
         }
 
         try {
-            // First, get the total count of available agencies
             val initialResponse = api.getAgencies(limit = 1)
             val totalItems = initialResponse.count
 
-            if (shuffle && totalItems > 0) {
-                // Calculate how many complete pages of 100 items exist
-                val totalPages = (totalItems + 99) / 100
+            if (totalItems > 0) {
+                val offset = if (shuffle) {
+                    val totalPages = (totalItems + 99) / 100
+                    Random.nextInt(totalPages) * 100
+                } else 0
 
-                // Pick a random page, ensuring we don't exceed the total count
-                val randomPage = Random.nextInt(totalPages)
-                val offset = randomPage * 100
-
-                // Fetch the random page
                 val response = api.getAgencies(limit = 100, offset = offset)
+                val entities = if (shuffle) {
+                    response.results.shuffled()
+                } else {
+                    response.results
+                }.map { it.toAgencyEntity() }
 
-                // Shuffle the results before saving
-                val shuffledResults = response.results.shuffled()
-                dao.insertAgencies(shuffledResults.map { it.toAgencyEntity() })
-            } else {
-                // If not shuffling, just get the first page
-                val response = api.getAgencies(limit = 100, offset = 0)
-                dao.insertAgencies(response.results.map { it.toAgencyEntity() })
+                // Clear existing data and insert new data
+                withContext(Dispatchers.IO) {
+                    dao.deleteAllAgencies()
+                    dao.insertAgencies(entities)
+                }
             }
         } catch (e: Exception) {
             throw IOException("Failed to refresh agencies: ${e.message}", e)
