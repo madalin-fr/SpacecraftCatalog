@@ -10,19 +10,25 @@ data class SpacecraftDto(
     @SerializedName("serial_number")
     val serialNumber: String?,
     val description: String?,
-    val image: SpacecraftImageDto?, // Add this field
+    val image: SpacecraftImageDto?,
     @SerializedName("spacecraft_config")
     val spacecraftConfig: SpacecraftConfigDto,
     val status: SpacecraftStatusDto
-) {
-    init {
-        Log.d("SpacecraftDto", "Created DTO with agency: ${spacecraftConfig.agency?.id}")
-    }
-}
+)
 
 data class SpacecraftImageDto(
     @SerializedName("image_url")
-    val imageUrl: String?
+    val imageUrl: String?,
+    @SerializedName("thumbnail_url")
+    val thumbnailUrl: String?,
+    val credit: String?,
+    val license: ImageLicenseDto?
+)
+
+data class ImageLicenseDto(
+    val id: Int,
+    val name: String,
+    val url: String?
 )
 
 

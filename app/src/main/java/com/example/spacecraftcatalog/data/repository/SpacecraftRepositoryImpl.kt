@@ -5,7 +5,9 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
 import com.example.spacecraftcatalog.data.api.SpaceAgencyApi
+import com.example.spacecraftcatalog.data.db.AgencyDao
 import com.example.spacecraftcatalog.data.db.SpacecraftDao
+import com.example.spacecraftcatalog.data.mapper.toAgency
 import com.example.spacecraftcatalog.data.mapper.toSpacecraft
 import com.example.spacecraftcatalog.data.mapper.toSpacecraftEntity
 import com.example.spacecraftcatalog.domain.model.Spacecraft
@@ -18,12 +20,16 @@ import javax.inject.Inject
 class SpacecraftRepositoryImpl @Inject constructor(
     private val api: SpaceAgencyApi,
     private val dao: SpacecraftDao,
+    private val agencyDao: AgencyDao,
     private val connectivityManager: ConnectivityManager
 ) : SpacecraftRepository {
 
     override fun getSpacecraftByAgency(agencyId: Int): Flow<List<Spacecraft>> {
         return dao.getSpacecraftByAgency(agencyId).map { entities ->
-            entities.map { it.toSpacecraft() }
+            entities.map { entity ->
+                val agency = agencyDao.getAgencyById(entity.agencyId ?: -1)
+                entity.toSpacecraft(agency?.toAgency())
+            }
         }
     }
 
@@ -38,6 +44,7 @@ class SpacecraftRepositoryImpl @Inject constructor(
                 try {
                     dto.toSpacecraftEntity(requestedAgencyId = agencyId)
                 } catch (e: Exception) {
+                    Log.e("SpacecraftRepo", "Error mapping spacecraft", e)
                     null
                 }
             }
@@ -46,6 +53,7 @@ class SpacecraftRepositoryImpl @Inject constructor(
             throw IOException("Failed to refresh spacecraft: ${e.message}", e)
         }
     }
+
 
 
 

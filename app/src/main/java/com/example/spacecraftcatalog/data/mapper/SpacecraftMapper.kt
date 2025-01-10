@@ -4,8 +4,9 @@ package com.example.spacecraftcatalog.data.mapper
 import android.util.Log
 import com.example.spacecraftcatalog.data.db.SpacecraftEntity
 import com.example.spacecraftcatalog.data.model.SpacecraftDto
-import com.example.spacecraftcatalog.data.model.SpacecraftStatus
+import com.example.spacecraftcatalog.domain.model.SpacecraftStatus
 import com.example.spacecraftcatalog.data.model.SpacecraftStatusDto
+import com.example.spacecraftcatalog.domain.model.Agency
 import com.example.spacecraftcatalog.data.model.SpacecraftStatus as DataSpacecraftStatus
 import com.example.spacecraftcatalog.domain.model.Spacecraft
 import com.example.spacecraftcatalog.domain.model.SpacecraftStatus as DomainSpacecraftStatus
@@ -13,35 +14,26 @@ import com.example.spacecraftcatalog.domain.model.SpacecraftStatus as DomainSpac
 fun SpacecraftDto.toSpacecraftEntity(requestedAgencyId: Int? = null): SpacecraftEntity {
     val resolvedAgencyId = spacecraftConfig.agency?.id ?: requestedAgencyId
 
-    if (resolvedAgencyId == null) {
-        Log.w("SpacecraftMapper", "No agency ID available for spacecraft: $name")
-    }
-
     return SpacecraftEntity(
         id = id,
         name = name,
         serialNumber = serialNumber,
         description = description ?: "",
-        imageUrl = image?.imageUrl, // Update to use nested image URL
+        imageUrl = image?.imageUrl,
         agencyId = resolvedAgencyId,
-        status = status.name.let { SpacecraftStatus.fromApiName(it).name }
+        status = convertStatusToString(status)
     )
 }
 
 
-
-fun SpacecraftEntity.toSpacecraft() = Spacecraft(
+fun SpacecraftEntity.toSpacecraft(agency: Agency? = null) = Spacecraft(
     id = id,
     name = name,
     serialNumber = serialNumber,
     description = description ?: "",
     imageUrl = imageUrl,
-    agency = null,
-    status = try {
-        DomainSpacecraftStatus.valueOf(status)
-    } catch (e: IllegalArgumentException) {
-        DomainSpacecraftStatus.UNKNOWN
-    }
+    agency = agency,
+    status = convertStringToStatus(status)
 )
 
 private fun SpacecraftStatusDto.toDomainStatus(): DomainSpacecraftStatus {
@@ -58,25 +50,33 @@ fun SpacecraftDto.toSpacecraft() = Spacecraft(
     name = name,
     serialNumber = serialNumber,
     description = description ?: "",
-    imageUrl = image?.imageUrl, // Accessing nested image URL
+    imageUrl = image?.imageUrl,
     agency = spacecraftConfig.agency?.toAgency(),
-    status = SpacecraftStatus.fromApiName(status.name).toDomainStatus()
+    status = convertApiStatusToDomain(status)
 )
 
-private fun DataSpacecraftStatus.toDomainStatus(): DomainSpacecraftStatus {
-    return when (this) {
-        DataSpacecraftStatus.ACTIVE -> DomainSpacecraftStatus.ACTIVE
-        DataSpacecraftStatus.RETIRED -> DomainSpacecraftStatus.RETIRED
-        DataSpacecraftStatus.IN_DEVELOPMENT -> DomainSpacecraftStatus.IN_DEVELOPMENT
-        DataSpacecraftStatus.UNKNOWN -> DomainSpacecraftStatus.UNKNOWN
+private fun convertStatusToString(status: SpacecraftStatusDto): String {
+    return when (status.name.uppercase()) {
+        "ACTIVE" -> SpacecraftStatus.ACTIVE.name
+        "RETIRED" -> SpacecraftStatus.RETIRED.name
+        "IN DEVELOPMENT" -> SpacecraftStatus.IN_DEVELOPMENT.name
+        else -> SpacecraftStatus.UNKNOWN.name
     }
 }
 
-private fun DomainSpacecraftStatus.toDataStatus(): DataSpacecraftStatus {
-    return when (this) {
-        DomainSpacecraftStatus.ACTIVE -> DataSpacecraftStatus.ACTIVE
-        DomainSpacecraftStatus.RETIRED -> DataSpacecraftStatus.RETIRED
-        DomainSpacecraftStatus.IN_DEVELOPMENT -> DataSpacecraftStatus.IN_DEVELOPMENT
-        DomainSpacecraftStatus.UNKNOWN -> DataSpacecraftStatus.UNKNOWN
+private fun convertStringToStatus(status: String): SpacecraftStatus {
+    return try {
+        SpacecraftStatus.valueOf(status)
+    } catch (e: IllegalArgumentException) {
+        SpacecraftStatus.UNKNOWN
+    }
+}
+
+private fun convertApiStatusToDomain(status: SpacecraftStatusDto): SpacecraftStatus {
+    return when (status.name.uppercase()) {
+        "ACTIVE" -> SpacecraftStatus.ACTIVE
+        "RETIRED" -> SpacecraftStatus.RETIRED
+        "IN DEVELOPMENT" -> SpacecraftStatus.IN_DEVELOPMENT
+        else -> SpacecraftStatus.UNKNOWN
     }
 }
